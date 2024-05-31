@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Tally v7 Software</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: #333;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #ff7e5f;
+        }
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background: #ff7e5f;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        nav button:hover {
+            background: #feb47b;
+        }
+
+        form {
+            display: none;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        form.active {
+            display: flex;
+        }
+
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .form-section h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #ff7e5f;
+            padding-bottom: 5px;
+            text-align: center;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        label {
+            width: 40%;
+            font-weight: bold;
+            color: #555;
+            margin-right: 10px;
+            font-size: 1em;
+        }
+
+        input[type="date"],
+        input[type="number"],
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 100px; /* Fixed width to prevent shifting */
+        }
+
+        .value {
+            margin-left: 10px;
+            font-size: 1em;
+            color: #555;
+            width: 100px; /* Fixed width to align with input boxes */
+            text-align: right; /* Align text to the right for consistency */
+        }
+
+        .summary {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .total, .dayclose, .excess {
+            flex: 1;
+            text-align: center;
+            background: #ff7e5f;
+            color: #fff;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px;
+        }
+
+        .submit-button {
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .submit-button input[type="submit"] {
+            background: #ff7e5f;
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .submit-button input[type="submit"]:hover {
+            background: #feb47b;
+        }
+
+
+        .search-section, .edit-section, .report-section {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .search-section.active, .edit-section.active, .report-section.active {
+            display: flex;
+        }
+
+        .search-section input, .edit-section input, .report-section input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .search-section button, .edit-section button, .report-section button {
+            background: #ff7e5f;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .search-section button:hover, .edit-section button:hover, .report-section button:hover {
+            background: #feb47b;
+        }
+
+
+
+        @media (max-width: 600px) {
+            form {
+                flex-direction: column;
+            }
+            .form-section {
+                width: 100%;
+            }
+            label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .summary {
+                flex-direction: column;
+                align-items: center;
+            }
+            .total, .dayclose, .excess {
+                width: 100%;
+            }
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <h1>Cash Tally</h1>
+        </header>
+        <nav>
+            <button onclick="showSection('save')">Save Data</button>
+            <button onclick="showSection('search')">Search Data</button>
+            <button onclick="showSection('edit')">Edit Data</button>
+            <button onclick="showSection('report')">Print Report</button>
+        </nav>
+        <form id="cashTallyForm" name="submit-to-google-sheets" class="form-section active">
+            <div class="form-section">
+                <h2>Daily Cash Details</h2>
+                <div class="form-group">
+                    <label id="label1" for="date">Date:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="OpeningBalance">Opening Balance: ₹</label>
+                    <input type="number" id="OpeningBalance" name="OpeningBalance" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="Sales">Sales: ₹</label>
+                    <input type="number" id="Sales" name="Sales" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="OnlineSales">Online Sales: ₹</label>
+                    <input type="number" id="OnlineSales" name="OnlineSales" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="gPay">GPay / UPI: ₹</label>
+                    <input type="number" id="gPay" name="gPay" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="Cheque">Cheque: ₹</label>
+                    <input type="number" id="Cheque" name="Cheque" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="CreditCard">Credit Card: ₹</label>
+                    <input type="number" id="CreditCard" name="CreditCard" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="Expenses">Expenses: ₹</label>
+                    <input type="number" id="Expenses" name="Expenses" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="SareeChit">Saree Chit: ₹</label>
+                    <input type="number" id="SareeChit" name="SareeChit" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="Bank1">Bank A/c 1: ₹</label>
+                    <input type="number" id="Bank1" name="Bank1" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="Bank2">Bank A/c 2: ₹</label>
+                    <input type="number" id="Bank2" name="Bank2" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label id="label1" for="Bank3">Bank A/c 3 (Chit): ₹</label>
+                    <input type="number" id="Bank3" name="Bank3" value="0" required>
+                </div>
+                <div class="total" id="totaldeductions" name="total">Total : ₹0</div>
+
+                <div class="dayclose" id="dayclosing" name="ClosingBalance">Closing Balance: ₹0</div>
+
+                <div class="excess" id="excess" name="Excess/Shortage">Excess / Shortage: ₹0</div>
+            </div>
+            <div class="form-section">
+                <h2>Cash Denominations</h2>
+                <div class="form-group">
+                    <label id="label2" for="2000">₹2000:</label>
+                    <input type="number" id="2000" name="2000" value="0" min="0" required>
+                    <div class="value" id="value2000">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="1000">₹1000:</label>
+                    <input type="number" id="1000" name="1000" value="0" min="0" required>
+                    <div class="value" id="value1000">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="500">₹500:</label>
+                    <input type="number" id="500" name="500" value="0" min="0" required>
+                    <div class="value" id="value500">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="200">₹200:</label>
+                    <input type="number" id="200" name="200" value="0" min="0" required>
+                    <div class="value" id="value200">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="100">₹100:</label>
+                    <input type="number" id="100" name="100" value="0" min="0" required>
+                    <div class="value" id="value100">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="50">₹50:</label>
+                    <input type="number" id="50" name="50" value="0" min="0" required>
+                    <div class="value" id="value50">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="20">₹20:</label>
+                    <input type="number" id="20" name="20" value="0" min="0" required>
+                    <div class="value" id="value20">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="10">₹10:</label>
+                    <input type="number" id="10" name="10" value="0" min="0" required>
+                    <div class="value" id="value10">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="5">₹5:</label>
+                    <input type="number" id="5" name="5" value="0" min="0" required>
+                    <div class="value" id="value5">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="2">₹2:</label>
+                    <input type="number" id="2" name="2" value="0" min="0" required>
+                    <div class="value" id="value2">₹0</div>
+                </div>
+                <div class="form-group">
+                    <label id="label2" for="1">₹1:</label>
+                    <input type="number" id="1" name="1" value="0" min="0" required>
+                    <div class="value" id="value1">₹0</div>
+                </div>
+                <div class="total" id="totalValue">Total Currency: ₹0</div>
+                    
+            </div>
+            <input type="hidden" id="hiddenClosingBalance" name="ClosingBalance">
+            <input type="hidden" id="hiddenExcessOrShortage" name="ExcessOrShortage">
+            <input type="hidden" id="hiddenTotalDeductions" name="TotalDeductions">
+            
+            <div class="submit-button">
+                <input type="submit" value="Submit">
+            </div>
+            <span id="success">
+
+            </span>
+        </form>
+
+        <div id="searchSection" class="search-section">
+            <h2>Search Data</h2>
+            <input type="date" id="searchDate" placeholder="Enter date to search">
+            <button onclick="searchData()">Search</button>
+            <div id="searchResult"></div>
+        </div>
+
+        <div id="editSection" class="edit-section">
+            <h2>Edit Data</h2>
+            <input type="date" id="editDate" placeholder="Enter date to edit">
+            <button onclick="editData()">Edit</button>
+            <div id="editResult"></div>
+        </div>
+
+        <div id="reportSection" class="report-section">
+            <h2>Print Report</h2>
+            <input type="date" id="reportDate" placeholder="Enter date for report">
+            <button onclick="printReport()">Print</button>
+        </div>
+
+        <iframe name="hiddenFrame" style="display:none;"></iframe>
+
+
+
+    </div>
+    <script>
+        const totalValueElement = document.getElementById('totalValue');
+        const totalDeductionsElement = document.getElementById('totaldeductions');
+        const dayClosingElement = document.getElementById('dayclosing');
+        const excessElement = document.getElementById('excess');
+
+        const cashInputs = document.querySelectorAll('input[type="number"]');
+
+        function calculateCashTotal() {
+            const denominations = {
+                2000: 2000,
+                1000: 1000,
+                500: 500,
+                200: 200,
+                100: 100,
+                50: 50,
+                20: 20,
+                10: 10,
+                5: 5,
+                2: 2,
+                1: 1,
+            };
+
+            let totalValue = 0;
+            for (let key in denominations) {
+                const input = document.getElementById(key);
+                const value = parseInt(input.value) || 0;
+                totalValue += value * denominations[key];
+                const each_val = (value * denominations[key]).toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                document.getElementById(`value${key}`).innerText = `${each_val}`;
+            }
+            const totalValue_formatted = totalValue.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+            totalValueElement.innerText = `Total Currency: ${totalValue_formatted}`;
+            
+            return totalValue;
+        }
+
+        function calculateDailySummary() {
+            const openingBalance = parseFloat(document.getElementById('OpeningBalance').value) || 0;
+            const sales = parseFloat(document.getElementById('Sales').value) || 0;
+            const onlineSales = parseFloat(document.getElementById('OnlineSales').value) || 0;
+            const gPay = parseFloat(document.getElementById('gPay').value) || 0;
+            const cheque = parseFloat(document.getElementById('Cheque').value) || 0;
+            const creditCard = parseFloat(document.getElementById('CreditCard').value) || 0;
+            const expenses = parseFloat(document.getElementById('Expenses').value) || 0;
+            const sareeChit = parseFloat(document.getElementById('SareeChit').value) || 0;
+            const bank1 = parseFloat(document.getElementById('Bank1').value) || 0;
+            const bank2 = parseFloat(document.getElementById('Bank2').value) || 0;
+            const bank3 = parseFloat(document.getElementById('Bank3').value) || 0;
+
+            const totalDeductions = onlineSales + gPay + cheque + creditCard + expenses + sareeChit + bank1 + bank2 + bank3;
+            const totalDeductions_formatted = totalDeductions.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+            totalDeductionsElement.innerText = `Total : ${totalDeductions_formatted}`;
+
+            document.getElementById('hiddenTotalDeductions').value = totalDeductions;
+
+            const ClosingBalance = openingBalance + sales - totalDeductions;
+            const ClosingBalance_formatted = ClosingBalance.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+            dayClosingElement.innerText = `Closing Balance: ${ClosingBalance_formatted}`;
+            document.getElementById('hiddenClosingBalance').value = ClosingBalance;
+
+
+            const totalCash = calculateCashTotal();
+            const excessOrShortage = totalCash - ClosingBalance;
+            const excessOrShortage_formatted = excessOrShortage.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+            excessElement.innerText = `Excess / Shortage: ${excessOrShortage_formatted}`;
+
+            document.getElementById('hiddenExcessOrShortage').value = excessOrShortage;
+        }
+
+        cashInputs.forEach(input => {
+            input.addEventListener('input', calculateCashTotal);
+        });
+
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbylFCc0dYNX_AMIHVFMu78hjr8RZKsgnKNcRGSfGBXHaf88vSLxH_72PPiyiPnaXV4/exec';
+        const form = document.forms['submit-to-google-sheets'];
+        const success = document.getElementById("success");
+
+        form.addEventListener('input', calculateDailySummary);
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            calculateDailySummary();
+            fetch(scriptURL, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => {
+                success.innerHTML = "Data Successfully Submitted";
+                setTimeout(() => {
+                    success.innerHTML = "";
+                }, 5000);
+                form.reset(); // Uncomment if you want to reset the form after submission
+            })
+            .catch(error => console.error('Error!', error.message));
+        });
+
+        // Ensure to call calculateDailySummary once on page load to initialize values
+        document.addEventListener('DOMContentLoaded', calculateDailySummary);
+
+        //sections
+        function showSection(section) {
+                document.querySelector('.form-section').classList.remove('active');
+                document.querySelector('.search-section').classList.remove('active');
+                document.querySelector('.edit-section').classList.remove('active');
+                document.querySelector('.report-section').classList.remove('active');
+
+                if (section === 'save') {
+                    document.querySelector('.form-section').classList.add('active');
+                } else if (section === 'search') {
+                    document.querySelector('.search-section').classList.add('active');
+                } else if (section === 'edit') {
+                    document.querySelector('.edit-section').classList.add('active');
+                } else if (section === 'report') {
+                    document.querySelector('.report-section').classList.add('active');
+                }
+            }
+
+            function searchData() {
+                const searchDate = document.getElementById('searchDate').value;
+                if (!searchDate) {
+                    alert('Please enter a date.');
+                    return;
+                }
+
+                fetch(`${scriptURL}?action=search&date=${searchDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            document.getElementById('searchResult').innerHTML = JSON.stringify(data[0], null, 2);
+                        } else {
+                            document.getElementById('searchResult').innerHTML = 'No data found for this date.';
+                        }
+                    })
+                    .catch(error => console.error('Error!', error.message));
+            }
+
+            function editData() {
+                const editDate = document.getElementById('editDate').value;
+                if (!editDate) {
+                    alert('Please enter a date.');
+                    return;
+                }
+
+                fetch(`${scriptURL}?action=edit&date=${editDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            const record = data[0];
+                            document.getElementById('date').value = record.date;
+                            document.getElementById('OpeningBalance').value = record.OpeningBalance;
+                            document.getElementById('Sales').value = record.Sales;
+                            document.getElementById('OnlineSales').value = record.OnlineSales;
+                            document.getElementById('gPay').value = record.gPay;
+                            document.getElementById('Cheque').value = record.Cheque;
+                            document.getElementById('CreditCard').value = record.CreditCard;
+                            document.getElementById('Expenses').value = record.Expenses;
+                            document.getElementById('SareeChit').value = record.SareeChit;
+                            document.getElementById('Bank1').value = record.Bank1;
+                            document.getElementById('Bank2').value = record.Bank2;
+                            document.getElementById('Bank3').value = record.Bank3;
+
+                            showSection('save');
+                        } else {
+                            document.getElementById('editResult').innerHTML = 'No data found for this date.';
+                        }
+                    })
+                    .catch(error => console.error('Error!', error.message));
+            }
+
+            function printReport() {
+                const reportDate = document.getElementById('reportDate').value;
+                if (!reportDate) {
+                    alert('Please enter a date.');
+                    return;
+                }
+
+                window.open(`${scriptURL}?action=print&date=${reportDate}`, 'hiddenFrame');
+            }
+
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', calculateTotals);
+            });
+
+            
+
+            // Ensure totals are calculated on load
+            window.onload = calculateTotals;
+
+
+
+        
+    </script>
+</body>
+</html>

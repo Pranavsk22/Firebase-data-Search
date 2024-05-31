@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase data</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" 
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container mt-3">
+        <table class="table table-dark">
+            <thead>
+                <th>Date</th>
+                <th>Col_1</th>
+                <th>Col_2</th>
+                <th>Col_3</th>
+            </thead>
+            <tbody id="tbody1">
+
+            </tbody>
+        </table>    
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script> 
+
+    <script type="module" id="MainScript">
+
+        var firebaseConfig = {
+            apiKey: "AIzaSyAkZWV_lJxDymV0O40r0IgmdPH1aWRCC4M",
+            authDomain: "displayfbdata.firebaseapp.com",
+            databaseURL: "https://displayfbdata-default-rtdb.firebaseio.com",
+            projectId: "displayfbdata",
+            storageBucket: "displayfbdata.appspot.com",
+            messagingSenderId: "463422341475",
+            appId: "1:463422341475:web:eedbfb2dba98f58eb85356"
+        };
+        firebase.initializeApp(firebaseConfig);
+  
+
+        function SelectAllData(){
+            firebase.database().ref("17yeVS7C_hwezWS-d-sMnCdEcsiNscsb63HsMDYfh5CA").once("value",
+            function(AllRecords){
+                AllRecords.forEach(
+                    function(CurrentRecord){
+                        var date=CurrentRecord.val().Date;
+                        var col1=CurrentRecord.val().Col_1;
+                        var col2=CurrentRecord.val().Col_2;
+                        var col3=CurrentRecord.val().Col_3;
+                        AddItemsToTable(date,col1,col2,col3);
+                    }
+
+                );
+
+            });
+        }
+        window.onload=SelectAllData;
+        
+        //filling table
+
+        function AddItemsToTable(date,col1,col2,col3){
+            var tbody=document.getElementById("tbody1");
+            var trow=document.createElement("tr");
+
+            var td1=document.createElement("td");
+            var td2=document.createElement("td");
+            var td3=document.createElement("td");
+            var td4=document.createElement("td");
+            td1.innerHTML=date;
+            td2.innerHTML=col1;
+            td3.innerHTML=col2;
+            td4.innerHTML=col3;
+
+            trow.appendChild(td1);
+            trow.appendChild(td2);
+            trow.appendChild(td3);
+            trow.appendChild(td4);
+            tbody.appendChild(trow);
+        }
+    </script>
+</body>
+
+</html>
